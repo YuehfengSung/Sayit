@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<title>SayIt 英語口說</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <h1 id="pageTitle">今日片語</h1>
+  <span id="costBadge" class="badge" title="本月估計花費"></span>
+</header>
+
+<main>
+  <!-- 今日片語 -->
+  <section id="tab-daily" class="tab active">
+    <div id="dailyList"></div>
+    <div class="row center">
+      <button id="btnMoreDaily" class="btn ghost">再給我 3 個</button>
+    </div>
+  </section>
+
+  <!-- 我想說 -->
+  <section id="tab-express" class="tab">
+    <div class="card">
+      <label class="lbl" for="zhInput">用中文說說看你想表達什麼</label>
+      <textarea id="zhInput" rows="3" placeholder="例如：我這週忙到爆，可以下週再約嗎？"></textarea>
+      <div class="row">
+        <button id="btnZhMic" class="btn ghost" title="用中文語音輸入">🎤 中文語音</button>
+        <button id="btnExpress" class="btn primary grow">英文怎麼說？</button>
+      </div>
+    </div>
+    <div id="expressResult"></div>
+  </section>
+
+  <!-- 對話 -->
+  <section id="tab-chat" class="tab">
+    <div id="chatStart" class="card">
+      <label class="lbl" for="chatTopic">想聊什麼？（可留白，讓 AI 挑一個日常話題）</label>
+      <input id="chatTopic" type="text" placeholder="例如：週末去釣魚、跟國外同事 small talk">
+      <button id="btnStartChat" class="btn primary full">開始對話</button>
+    </div>
+    <div id="chatBox" class="hidden">
+      <div class="row between small muted">
+        <span id="chatTopicLabel"></span>
+        <button id="btnEndChat" class="btn tiny ghost">結束對話</button>
+      </div>
+      <div id="chatLog"></div>
+    </div>
+  </section>
+
+  <!-- 最愛 -->
+  <section id="tab-fav" class="tab">
+    <div class="card">
+      <div class="row between">
+        <label class="small"><input type="checkbox" id="favSelectAll"> 全選</label>
+        <span id="favCount" class="small muted"></span>
+      </div>
+      <div class="row">
+        <button id="btnCommute" class="btn primary grow">🎧 通勤播放（選取的項目）</button>
+      </div>
+      <div class="row small">
+        <label><input type="checkbox" id="optShuffle"> 隨機順序</label>
+      </div>
+    </div>
+    <div id="favList"></div>
+  </section>
+
+  <!-- 設定 -->
+  <section id="tab-settings" class="tab">
+    <div class="card">
+      <h3>Claude API（必填）</h3>
+      <label class="lbl" for="setClaudeKey">API key</label>
+      <input id="setClaudeKey" type="password" autocomplete="off" placeholder="sk-ant-...">
+      <label class="lbl" for="setModel">模型</label>
+      <select id="setModel">
+        <option value="claude-haiku-5-5">Claude Haiku 5.5（預設，最便宜）</option>
+        <option value="claude-sonnet-5-5">Claude Sonnet 5.5（英文更自然，約貴 20 倍）</option>
+      </select>
+    </div>
+    <div class="card">
+      <h3>Google 語音（建議）</h3>
+      <p class="small muted">沒填的話會用手機內建語音，但無法產生通勤用的背景播放音檔。</p>
+      <label class="lbl" for="setTtsKey">Google Cloud TTS API key</label>
+      <input id="setTtsKey" type="password" autocomplete="off" placeholder="AIza...">
+      <label class="lbl" for="setVoiceEn">英文語音</label>
+      <select id="setVoiceEn"></select>
+      <label class="lbl" for="setVoiceZh">中文語音</label>
+      <select id="setVoiceZh">
+        <option value="cmn-TW-Wavenet-A">台灣華語 女聲 A</option>
+        <option value="cmn-TW-Wavenet-B">台灣華語 男聲 B</option>
+        <option value="cmn-TW-Wavenet-C">台灣華語 男聲 C</option>
+      </select>
+      <label class="lbl" for="setRate">英文語速 <span id="rateVal"></span></label>
+      <input id="setRate" type="range" min="0.6" max="1.2" step="0.05">
+      <button id="btnTestVoice" class="btn ghost full">🔊 試聽</button>
+    </div>
+    <div class="card">
+      <h3>通勤播放</h3>
+      <label class="lbl" for="setRepeat">每句英文重複次數</label>
+      <select id="setRepeat"><option>1</option><option>2</option><option>3</option></select>
+      <label class="lbl" for="setPause">句子間停頓（秒）</label>
+      <select id="setPause"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+      <label class="lbl" for="setZhMode">中文翻譯</label>
+      <select id="setZhMode">
+        <option value="after">英文之後唸中文</option>
+        <option value="before">先唸中文再唸英文</option>
+        <option value="none">不唸中文</option>
+      </select>
+    </div>
+    <div class="card">
+      <h3>關於我</h3>
+      <label class="lbl" for="setLevel">英文程度</label>
+      <input id="setLevel" type="text">
+      <label class="lbl" for="setInterests">常用情境／興趣（每日片語會參考）</label>
+      <textarea id="setInterests" rows="2"></textarea>
+      <label class="small"><input type="checkbox" id="setAutoplay"> 對話時自動播放 AI 的回覆</label><br>
+      <label class="small"><input type="checkbox" id="setAutoSend"> 語音辨識完成後自動送出</label>
+    </div>
+    <div class="card">
+      <h3>資料</h3>
+      <p id="usageText" class="small muted"></p>
+      <div class="row">
+        <button id="btnExport" class="btn ghost grow">匯出備份</button>
+        <button id="btnImport" class="btn ghost grow">匯入備份</button>
+        <input id="importFile" type="file" accept="application/json" class="hidden">
+      </div>
+      <button id="btnClearAudio" class="btn ghost full">清除語音快取</button>
+    </div>
+    <button id="btnSaveSettings" class="btn primary full">儲存設定</button>
+    <p class="small muted center">API key 只存在這支手機的瀏覽器裡。</p>
+  </section>
+</main>
+
+<nav class="tabbar">
+  <button data-tab="daily" class="active"><span>📅</span>今日</button>
+  <button data-tab="express"><span>💡</span>我想說</button>
+  <button data-tab="chat"><span>💬</span>對話</button>
+  <button data-tab="fav"><span>⭐</span>最愛</button>
+  <button data-tab="settings"><span>⚙️</span>設定</button>
+</nav>
+
+<!-- 跟讀面板 -->
+<div id="shadowSheet" class="sheet hidden">
+  <div class="sheet-body">
+    <div class="row between"><b>跟著唸</b><button class="btn tiny ghost" data-close>✕</button></div>
+    <p id="shTarget" class="big-en"></p>
+    <p id="shZh" class="muted"></p>
+    <div class="row">
+      <button id="shPlay" class="btn ghost">🔊 聽</button>
+      <button id="shSlow" class="btn ghost">🐢 慢速</button>
+      <button id="shMic" class="btn primary grow">🎤 按下開始唸</button>
+    </div>
+    <div id="shResult"></div>
+  </div>
+</div>
+
+<!-- 通勤播放器 -->
+<div id="playerSheet" class="sheet hidden">
+  <div class="sheet-body">
+    <div class="row between"><b>🎧 通勤播放</b><button class="btn tiny ghost" data-close>✕</button></div>
+    <p id="plStatus" class="small muted"></p>
+    <div class="progress"><div id="plBar"></div></div>
+    <p id="plEn" class="big-en"></p>
+    <p id="plZh" class="muted"></p>
+    <audio id="plAudio" controls preload="auto"></audio>
+    <div class="row">
+      <button id="plPrev" class="btn ghost grow">⏮ 上一句</button>
+      <button id="plNext" class="btn ghost grow">下一句 ⏭</button>
+    </div>
+    <div class="row between small">
+      <label><input type="checkbox" id="plLoop" checked> 循環播放</label>
+      <a id="plDownload" class="btn tiny ghost" download="sayit-commute.wav">⬇ 下載音檔</a>
+    </div>
+    <p class="small muted">關螢幕時若停止播放：設定 → 應用程式 → Chrome → 省電策略改成「無限制」。也可以下載音檔用音樂 App 播放。</p>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
