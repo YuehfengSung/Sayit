@@ -13,7 +13,10 @@
 <body>
 <header class="topbar">
   <h1 id="pageTitle">今日片語</h1>
-  <span id="costBadge" class="badge" title="本月估計花費"></span>
+  <div class="top-right">
+    <button id="speedChip" class="chip" title="英文語速（點一下切換）"></button>
+    <span id="costBadge" class="badge" title="本月估計花費"></span>
+  </div>
 </header>
 
 <main>
@@ -27,7 +30,7 @@
 
   <!-- 我想說 -->
   <section id="tab-express" class="tab">
-    <div class="card">
+    <div id="expressInput" class="card">
       <label class="lbl" for="zhInput">用中文說說看你想表達什麼</label>
       <textarea id="zhInput" rows="3" placeholder="例如：我這週忙到爆，可以下週再約嗎？"></textarea>
       <div class="row">
@@ -36,6 +39,10 @@
       </div>
     </div>
     <div id="expressResult"></div>
+    <div id="expressListWrap">
+      <h4 class="sec">我想說的紀錄</h4>
+      <div id="expressList"></div>
+    </div>
   </section>
 
   <!-- 對話 -->
@@ -45,18 +52,44 @@
       <input id="chatTopic" type="text" placeholder="例如：週末去釣魚、跟國外同事 small talk">
       <button id="btnStartChat" class="btn primary full">開始對話</button>
     </div>
+    <div id="chatListWrap">
+      <h4 class="sec">對話紀錄</h4>
+      <div id="chatList"></div>
+    </div>
     <div id="chatBox" class="hidden">
-      <div class="row between small muted">
-        <span id="chatTopicLabel"></span>
-        <button id="btnEndChat" class="btn tiny ghost">結束對話</button>
+      <div class="row between small">
+        <button id="btnChatBack" class="btn tiny ghost">← 對話清單</button>
+        <span id="chatTopicLabel" class="muted chat-label"></span>
       </div>
       <div id="chatLog"></div>
     </div>
   </section>
 
+  <!-- 情境練習 -->
+  <section id="tab-scene" class="tab">
+    <div id="sceneListView">
+      <div class="card">
+        <h3>新增情境</h3>
+        <p class="small muted">例如英文簡報、研討會報告、口試、國際會議。上傳你的資料後，可以產生上台句、名詞解釋、預測問答和開場轉場用語。</p>
+        <label class="lbl" for="scName">名稱</label>
+        <input id="scName" type="text" placeholder="例如：AFAS 2026 海報報告">
+        <label class="lbl" for="scRole">你的身分與情境</label>
+        <textarea id="scRole" rows="3" placeholder="例如：我是漁業科學博士生，要在國際研討會用英文報告研究，報告 12 分鐘、問答 3 分鐘，聽眾是漁業和海洋生態的研究者。"></textarea>
+        <label class="lbl" for="scFiles">資料（可多選：PDF、Word .docx、PowerPoint .pptx、.txt）</label>
+        <input id="scFiles" type="file" multiple accept=".pdf,.docx,.pptx,.txt,.md">
+        <div id="scNewStatus"></div>
+        <button id="btnNewScene" class="btn primary full">建立情境</button>
+      </div>
+      <h4 class="sec">我的情境</h4>
+      <div id="sceneList"></div>
+    </div>
+    <div id="sceneDetail" class="hidden"></div>
+  </section>
+
   <!-- 最愛 -->
   <section id="tab-fav" class="tab">
     <div class="card">
+      <div id="listChips" class="list-chips"></div>
       <div class="row between">
         <label class="small"><input type="checkbox" id="favSelectAll"> 全選</label>
         <span id="favCount" class="small muted"></span>
@@ -64,8 +97,12 @@
       <div class="row">
         <button id="btnCommute" class="btn primary grow">🎧 通勤播放（選取的項目）</button>
       </div>
-      <div class="row small">
+      <div class="row small between">
         <label><input type="checkbox" id="optShuffle"> 隨機順序</label>
+        <span>
+          <button id="btnRenameList" class="btn tiny ghost">✏️ 重新命名</button>
+          <button id="btnDelList" class="btn tiny ghost">🗑 刪除清單</button>
+        </span>
       </div>
     </div>
     <div id="favList"></div>
@@ -96,7 +133,7 @@
         <option value="cmn-TW-Wavenet-B">台灣華語 男聲 B</option>
         <option value="cmn-TW-Wavenet-C">台灣華語 男聲 C</option>
       </select>
-      <label class="lbl" for="setRate">英文語速 <span id="rateVal"></span></label>
+      <label class="lbl" for="setRate">英文語速 <span id="rateVal"></span>（也可以點畫面右上角的 🐢 快速切換）</label>
       <input id="setRate" type="range" min="0.6" max="1.2" step="0.05">
       <button id="btnTestVoice" class="btn ghost full">🔊 試聽</button>
     </div>
@@ -133,7 +170,7 @@
       <button id="btnClearAudio" class="btn ghost full">清除語音快取</button>
     </div>
     <button id="btnSaveSettings" class="btn primary full">儲存設定</button>
-    <p class="small muted center">API key 只存在這支手機的瀏覽器裡。</p>
+    <p class="small muted center">API key 只存在這支手機的瀏覽器裡。<br>SayIt 版本 <span id="appVersion"></span></p>
   </section>
 </main>
 
@@ -141,6 +178,7 @@
   <button data-tab="daily" class="active"><span>📅</span>今日</button>
   <button data-tab="express"><span>💡</span>我想說</button>
   <button data-tab="chat"><span>💬</span>對話</button>
+  <button data-tab="scene"><span>🎓</span>情境</button>
   <button data-tab="fav"><span>⭐</span>最愛</button>
   <button data-tab="settings"><span>⚙️</span>設定</button>
 </nav>
@@ -174,10 +212,26 @@
       <button id="plNext" class="btn ghost grow">下一句 ⏭</button>
     </div>
     <div class="row between small">
+      <label>語速
+        <select id="plRate" class="inline-select">
+          <option value="0.6">0.6×</option><option value="0.7">0.7×</option><option value="0.8">0.8×</option>
+          <option value="0.9">0.9×</option><option value="1">1×</option><option value="1.1">1.1×</option><option value="1.2">1.2×</option>
+        </select></label>
       <label><input type="checkbox" id="plLoop" checked> 循環播放</label>
       <a id="plDownload" class="btn tiny ghost" download="sayit-commute.wav">⬇ 下載音檔</a>
     </div>
     <p class="small muted">關螢幕時若停止播放：設定 → 應用程式 → Chrome → 省電策略改成「無限制」。也可以下載音檔用音樂 App 播放。</p>
+  </div>
+</div>
+
+<!-- 清單選擇器 -->
+<div id="listSheet" class="sheet hidden">
+  <div class="sheet-body">
+    <div class="row between"><b id="lsTitle">加入清單</b><button class="btn tiny ghost" data-close>✕</button></div>
+    <p id="lsText" class="small muted"></p>
+    <div id="lsLists"></div>
+    <div class="row"><input id="lsNew" type="text" placeholder="新清單名稱" class="grow"><button id="lsAdd" class="btn ghost">＋ 新增</button></div>
+    <button class="btn primary full" data-close>完成</button>
   </div>
 </div>
 
