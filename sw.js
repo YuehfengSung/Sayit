@@ -1,5 +1,5 @@
 // 離線快取：網路優先，失敗時用快取（只處理本站檔案，不碰 API 請求）
-const CACHE = 'sayit-v4';
+const CACHE = 'sayit-v5';
 const SHELL = ['./', 'index.html', 'style.css', 'app.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener('activate', e => {
