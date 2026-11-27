@@ -139,12 +139,13 @@
     </div>
     <div class="card">
       <h3>通勤播放</h3>
-      <label class="lbl" for="setRepeat">每句英文重複次數</label>
+      <label class="lbl" for="setRepeat">每句英文重複次數（中文夾中間時至少 2 遍）</label>
       <select id="setRepeat"><option>1</option><option>2</option><option>3</option></select>
       <label class="lbl" for="setPause">句子間停頓（秒）</label>
       <select id="setPause"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
       <label class="lbl" for="setZhMode">中文翻譯</label>
       <select id="setZhMode">
+        <option value="middle">英文 → 中文 → 英文（中文夾在中間）</option>
         <option value="after">英文之後唸中文</option>
         <option value="before">先唸中文再唸英文</option>
         <option value="none">不唸中文</option>

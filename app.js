@@ -28,12 +28,22 @@ const spinner = msg => `<div class="spinner">${esc(msg)}</div>`;
 const DEFAULTS = {
   claudeKey: '', model: 'claude-haiku-5-5',
   ttsKey: '', voiceEn: 'en-US-Chirp3-HD-Aoede', voiceZh: 'cmn-TW-Wavenet-A', rate: 1.0,
-  repeat: 2, pause: 2, zhMode: 'after',
+  repeat: 2, pause: 2, zhMode: 'middle',
   level: '中級：讀寫還可以，口說不夠流利，想學道地的日常說法',
   interests: '日常生活、研究室日常與開會、國際研討會交流與 small talk、出國旅遊',
   autoplay: true, autoSend: true
 };
 let S = Object.assign({}, DEFAULTS, store.get('settings', {}));
+// 中文夾在兩遍英文中間（2026-11 起的預設）：舊的預設「英文之後」自動改過來一次
+if (!store.get('zhMiddleSet', false)) { if (S.zhMode === 'after') { S.zhMode = 'middle'; store.set('settings', S); } store.set('zhMiddleSet', true); }
+/** 通勤播放的唸法順序：middle＝英文→中文→英文（英文共 repeat 遍，至少 2 遍） */
+function playOrder(hasZh) {
+  const n = S.repeat, en = k => Array(k).fill('en');
+  if (!hasZh || S.zhMode === 'none') return en(n);
+  if (S.zhMode === 'before') return ['zh', ...en(n)];
+  if (S.zhMode === 'after') return [...en(n), 'zh'];
+  return ['en', 'zh', ...en(Math.max(1, n - 1))];
+}
 
 const EN_VOICES = [
   ['en-US-Chirp3-HD-Aoede', '美式 女聲 Aoede'], ['en-US-Chirp3-HD-Kore', '美式 女聲 Kore'],
@@ -1248,10 +1258,12 @@ $('#btnCommute').onclick = async () => {
       const en = await decode(await ttsBlob(s.en, 'en'));
       const zh = (S.zhMode !== 'none' && s.zh) ? await decode(await ttsBlob(s.zh, 'zh')) : null;
       const start = pos / SR_OUT;
-      const pushZh = () => { if (zh) { chunks.push(zh); pos += zh.length; silence(0.8); } };
-      if (S.zhMode === 'before') pushZh();
-      for (let r = 0; r < S.repeat; r++) { chunks.push(en); pos += en.length; silence(r < S.repeat - 1 ? Math.max(1, S.pause) : 0.8); }
-      if (S.zhMode === 'after') pushZh();
+      const order = playOrder(!!zh);
+      order.forEach((k, j) => {
+        const a = k === 'zh' ? zh : en; chunks.push(a); pos += a.length;
+        const last = j === order.length - 1;
+        silence(last || k === 'zh' || order[j + 1] === 'zh' ? 0.8 : Math.max(1, S.pause));
+      });
       silence(+S.pause);
       pl.segs.push({ start, end: pos / SR_OUT, en: s.en, zh: s.zh });
     }
@@ -1313,9 +1325,11 @@ async function liveFallback(sents) {
       const s = sents[i];
       $('#plEn').textContent = s.en; $('#plZh').textContent = s.zh || '';
       $('#plBar').style.width = `${Math.round(100 * (i + 1) / sents.length)}%`;
-      if (S.zhMode === 'before' && s.zh) { if (pl?.token !== token) return; await speak(s.zh, { lang: 'zh' }); await sleep(600); }
-      for (let r = 0; r < S.repeat; r++) { if (pl?.token !== token) return; await speak(s.en, { lang: 'en' }); await sleep(S.pause * 1000); }
-      if (S.zhMode === 'after' && s.zh) { if (pl?.token !== token) return; await speak(s.zh, { lang: 'zh' }); await sleep(S.pause * 1000); }
+      for (const k of playOrder(!!s.zh)) {
+        if (pl?.token !== token) return;
+        if (k === 'zh') { await speak(s.zh, { lang: 'zh' }); await sleep(600); }
+        else { await speak(s.en, { lang: 'en' }); await sleep(S.pause * 1000); }
+      }
     }
   } while ($('#plLoop').checked && pl?.token === token);
 }
