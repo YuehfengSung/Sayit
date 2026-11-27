@@ -438,7 +438,7 @@ JSON shape:
 }
 function phraseToFav(p) {
   return { title: p.phrase, note: `${p.meaning_zh || ''}${p.usage_zh ? '｜' + p.usage_zh : ''}`,
-    sentences: [{ en: p.phrase, zh: p.meaning_zh || '' }, ...(p.examples || []).map(x => ({ en: x.en, zh: x.zh }))] };
+    sentences: [{ en: p.phrase, zh: p.meaning_zh || '' }] }; // 例句各自有 ☆，可個別加入
 }
 function renderDaily() {
   const d = store.get('daily', { items: [] });
@@ -451,7 +451,7 @@ function renderDaily() {
       </div>
       <p class="meaning">${esc(p.meaning_zh)}</p>
       <p class="small muted">${esc(p.usage_zh)}</p>
-      ${(p.examples || []).map(x => `<div class="ex">${sentenceLine(x.en, x.zh, { fav: false })}</div>`).join('')}
+      ${(p.examples || []).map(x => `<div class="ex">${sentenceLine(x.en, x.zh))}</div>`).join('')}
       <div class="row">
         <button class="btn tiny ghost" data-shadow="${esc(p.phrase)}" data-zh="${esc(p.meaning_zh)}">🎤 跟讀</button>
         <button class="btn tiny ghost" data-lesson-phrase="${i}">📚 建立小課程</button>
